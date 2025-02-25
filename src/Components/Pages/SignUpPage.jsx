@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   Container,
@@ -16,6 +16,7 @@ import { BiShow, BiHide } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 function SignUpPage() {
   const theme = React.useMemo(
@@ -48,6 +49,7 @@ function SignUpPage() {
     name: '',
     email: '',
     password: '',
+    reCAPTCHAValue: '',
   });
 
   const [errors, setErrors] = useState({
@@ -55,6 +57,11 @@ function SignUpPage() {
     email: '',
     password: '',
   });
+  const SITE_KEY = "6LfwiuIqAAAAABYBk9rF_nWDvMheSNFxdKpAah5E"
+  const reCAPTCHARef = useRef();
+  console.log(reCAPTCHARef, 'reCAPTCHARef');
+  
+  // const [reCAPTCHAValue, setReCAPTCHAValue] = useState('');
 
   // Handle Input Change
   const handleInputs = (e) => {
@@ -63,9 +70,21 @@ function SignUpPage() {
     setErrors((prevState) => ({ ...prevState, [name]: '' })); 
   };
 
+  // Handle ReCAPTCHA
+  const handleReCAPTCHA = (value) => {
+    setValue((prevState) => ({ ...prevState, reCAPTCHAValue: value }));
+  };
+
   // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(value , 'value');
+
+    if (!value.reCAPTCHAValue) {
+      alert('Please verify that you are not a robot.');
+      return;
+    }
 
     const newErrors = {};
 
@@ -81,8 +100,15 @@ function SignUpPage() {
 
     try {
       const res = await axios.post('https://blog-backend-pdhw.onrender.com/users/createUser', value);
-      navigate('/login');
       console.log(res);
+      reCAPTCHARef.current.reset();
+      setValue({
+        name: '',
+        email: '',
+        password: '',
+        reCAPTCHAValue: '',
+      });
+      navigate('/login');
     } catch (err) {
       const errorMsg = err.response?.data?.Message;
 
@@ -196,6 +222,13 @@ function SignUpPage() {
                     </InputAdornment>
                   ),
                 }}
+              />
+
+              <ReCAPTCHA 
+                sitekey={SITE_KEY}
+                theme='dark'
+                ref={reCAPTCHARef}
+                onChange={handleReCAPTCHA}
               />
 
               <Button
