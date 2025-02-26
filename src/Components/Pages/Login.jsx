@@ -82,7 +82,7 @@ function Login() {
         navigate('/blogs');
       })
       .catch((err) => {
-        const errorMessage = err.response.data.Message;
+        const errorMessage = err.response?.data?.Message;
 
         if (errorMessage === 'User Not Found') {
           setError({ ...error, email: errorMessage });
